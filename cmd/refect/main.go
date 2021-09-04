@@ -24,7 +24,11 @@ func main() {
 	fmt.Println(name)
 	fmt.Printf("v.FieldByname(name)  = %v\n", rv.FieldByName(name).Interface())
 
-	for i := 0; i < tp.NumField(); i++ {
-		fmt.Println(rv.Field(i))
+	for i := 0; i < rv.NumField(); i++ {
+		fmt.Printf("%#v\n", tp.Field(i))
+		fv := rv.Field(i)
+		fmt.Printf("%#v\n", fv)
+		fmt.Printf("%#v\n", fv.Interface())
+
 	}
 }
