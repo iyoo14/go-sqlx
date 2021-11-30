@@ -24,17 +24,27 @@ var dsn string
 var db *sqlx.DB
 
 type User struct {
-	ID   int    `db:"id"`
-	Name string `db:"name"`
-	Age  int    `db:"age"`
+	ID   interface{} `db:"id"`
+	Name interface{} `db:"name"`
+	Age  interface{} `db:"age"`
 }
 type Userlist []User
+
+type UserX struct {
+	ID   interface{} `db:"id" column:"int"`
+	Name interface{} `db:"name" column:"text"`
+	Age  interface{} `db:"age" column:"int"`
+}
 
 func main() {
 	exe, _ := os.Executable()
 	exePath = filepath.Dir(exe)
 	setEnv()
 	DbConnection(dsn)
+	createDb("user_x", UserX{})
+}
+
+func selectInsert() {
 	var userlist Userlist
 	rows, err := db.Queryx("SELECT id, name, age FROM users")
 	if err != nil {
@@ -100,6 +110,20 @@ func main() {
 	tx.Commit()
 
 }
+
+func createDb(tableName, table interface{}) {
+	var columns []string
+	rt := reflect.TypeOf(table)
+	for i := 0; i < rt.NumField(); i++ {
+		f := rt.Field(i)
+		columns = append(columns, fmt.Sprintf("%s %s", f.Tag.Get("db"), f.Tag.Get("column")))
+	}
+	query := fmt.Sprintf("CREATE TABLE %s (%s)", tableName, strings.Join(columns, ","))
+	fmt.Println(query)
+	db.Exec(query)
+
+}
+
 func setEnv() {
 	fname := filepath.Join(exePath, "..", "..", "..", "config", "config.json")
 	f, err := os.Open(fname)
